@@ -1,0 +1,222 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=Inter:wght@400;500&display=swap');
+
+    :root {
+      --beige:        #F2ECD9;
+      --beige-dark:   #E8DFC8;
+      --beige-border: #D9CEB0;
+      --text:         #2E2A1E;
+      --text-muted:   #7A7060;
+      --btn-bg:       #D8D0BC;
+      --btn-hover:    #C8BFA8;
+      --badge-bg:     #E0D9C5;
+      --green:        #5A7A2E;
+      --radius:       16px;
+      --radius-sm:    10px;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background-image: url('assets/background.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--beige);
+      border-radius: var(--radius);
+      padding: 28px 24px 20px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+      position: relative;
+    }
+
+    /* ── Typography ── */
+    h1 {
+      font-family: "Nunito", sans-serif;
+      font-size: 22px;
+      font-weight: 600;
+      text-align: center;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    /* ── Status badge ── */
+    .status-wrap { display: flex; justify-content: center; margin-bottom: 16px; }
+    .badge {
+      background: var(--badge-bg);
+      border: 1px solid var(--beige-border);
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      padding: 5px 18px;
+    }
+    .badge-due     { background: #F5E6C0; border-color: #D4B870; color: #7A5500; }
+    .badge-overdue { background: #F5D0C0; border-color: #D48870; color: #7A2500; }
+
+    /* ── Plant animation area ── */
+    .plant-wrap {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      margin: 0 auto 20px;
+    }
+    .plant-frame {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      border-radius: 8px;
+    }
+    .plant-frame.active { opacity: 1; }
+
+    /* Fallback SVG plant shown when images aren't loaded yet */
+    .plant-fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 100px;
+      line-height: 1;
+    }
+    .plant-fallback.hidden { display: none; }
+
+    /* Water drop animation on watering */
+    @keyframes dropFall {
+      0%   { transform: translateY(-30px); opacity: 1; }
+      100% { transform: translateY(60px);  opacity: 0; }
+    }
+    .drop {
+      position: absolute;
+      top: 10px;
+      font-size: 22px;
+      animation: dropFall 0.8s ease-in forwards;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* Gentle sway on the plant wrap */
+    @keyframes sway {
+      0%, 100% { transform: rotate(-1deg); }
+      50%       { transform: rotate(1deg); }
+    }
+    .plant-wrap.watered { animation: sway 2s; }
+
+    /* ── Stat row ── */
+    .stat-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .stat-card {
+      background: var(--beige-dark);
+      border: 1px solid var(--beige-border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+    }
+    .stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+    .stat-val   { font-size: 22px; font-weight: 600; color: var(--text); }
+
+    /* ── Next watering ── */
+    .next-section { margin-bottom: 16px; }
+    .next-label { font-size: 12px; color: var(--text-muted); margin-bottom: 3px; }
+    .next-date  { font-size: 15px; font-weight: 500; color: var(--text); }
+
+    /* ── Buttons ── */
+    .btn-water {
+      width: 100%;
+      padding: 13px;
+      background: var(--btn-bg);
+      color: var(--text);
+      border: 1px solid var(--beige-border);
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      margin-bottom: 10px;
+    }
+    .btn-water:hover:not(:disabled) { background: var(--btn-hover); }
+    .btn-water:active:not(:disabled) { transform: scale(0.98); }
+    .btn-water:disabled { opacity: 0.45; cursor: default; }
+
+    .btn-primary {
+      width: 100%;
+      padding: 13px;
+      background: var(--green);
+      color: #e8f0d8;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 4px;
+    }
+    .btn-primary:hover { background: #4a6824; }
+
+    /* ── Setup inputs ── */
+    .setup-label { font-size: 13px; color: var(--text-muted); margin-bottom: 6px; display: block; }
+    input[type="text"], select {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      border: 1px solid var(--beige-border);
+      border-radius: var(--radius-sm);
+      background: var(--beige-dark);
+      color: var(--text);
+      margin-bottom: 14px;
+      outline: none;
+      appearance: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input[type="text"]:focus, select:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(90,122,46,0.15);
+    }
+
+    /* ── Reset ── */
+    .reset-btn {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+      display: block;
+      margin-left: auto;
+      font-family: inherit;
+      padding: 2px 0;
+    }
+    .reset-btn:hover { color: var(--text); }
+
+    /* ── View toggling ── */
+    .setup-view, .main-view { display: none; }
+    .setup-view.active, .main-view.active { display: block; }
+
+    /* ── Setup plant icon ── */
+    .setup-icon { font-size: 52px; text-align: center; margin-bottom: 12px; line-height: 1; }

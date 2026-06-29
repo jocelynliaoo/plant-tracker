@@ -1,0 +1,36 @@
+{
+    "name": "plant-tracker",
+    "version": "1.0.0",
+    "description": "A desktop widget to track plant watering schedules",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "build:mac": "electron-builder --mac",
+        "build:win": "electron-builder --win",
+        "build:linux": "electron-builder --linux"
+    },
+    "build": {
+        "appId": "com.jocelyn.plant-tracker",
+        "productName": "Plant Tracker",
+        "directories": {
+            "output": "dist"
+        },
+        "mac": {
+            "identity": null
+        },
+        "win": {
+            "target": "nsis"
+        },
+        "linux": {
+            "target": "AppImage"
+        }
+    },
+    "devDependencies": {
+        "electron": "^25.0.0",
+        "electron-builder": "^23.6.0"
+    },
+    "dependencies": {
+        "electron-store": "^5.1.1",
+        "node-cron": "^4.5.0"
+    }
+}

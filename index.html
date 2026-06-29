@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plant Tracker</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Pangolin&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="card">
+
+  <!-- ══ SETUP SCREEN ══ -->
+  <div class="setup-view active" id="setup">
+    <div class="setup-icon">🌱</div>
+    <h1>Plant Tracker</h1>
+    <p class="subtitle">Keep your plant alive!</p>
+
+    <label class="setup-label" for="plant-name">Plant name</label>
+    <input type="text" id="plant-name" placeholder="e.g. hammy, alex, joce..." maxlength="30">
+
+    <label class="setup-label" for="day-select">Which day do you water?</label>
+    <select id="day-select">
+      <option value="0">Sunday</option>
+      <option value="1">Monday</option>
+      <option value="2">Tuesday</option>
+      <option value="3">Wednesday</option>
+      <option value="4">Thursday</option>
+      <option value="5">Friday</option>
+      <option value="6">Saturday</option>
+    </select>
+
+    <button type="button" class="btn-primary" id="start-btn">Start tracking!</button>
+  </div>
+
+  <!-- ══ MAIN TRACKER SCREEN ══ -->
+  <div class="main-view" id="main">
+    <h1 id="plant-title">Plant Name</h1>
+    <p class="subtitle" id="schedule-label">Waters every [day]</p>
+
+    <div class="status-wrap">
+      <div class="badge" id="status-badge">—</div>
+    </div>
+
+    <div class="plant-wrap" id="plant-wrap">
+      <div class="plant-fallback" id="plant-fallback">🌿</div>
+      <img class="plant-frame" id="frame-0" src="assets/plant1.png" alt="plant frame 1">
+      <img class="plant-frame" id="frame-1" src="assets/plant2.png" alt="plant frame 2">
+      <img class="plant-frame" id="frame-2" src="assets/plant3.png" alt="plant frame 3">
+      <img class="plant-frame" id="frame-3" src="assets/plant4.png" alt="plant frame 4">
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-label">Times watered</div>
+        <div class="stat-val" id="count-val">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Streaks (weeks)</div>
+        <div class="stat-val" id="streak-val">0</div>
+      </div>
+    </div>
+
+    <div class="next-section">
+      <p class="next-label">Next watering</p>
+      <p class="next-date" id="next-date">—</p>
+    </div>
+
+    <button type="button" class="btn-water" id="water-btn">Done watering</button>
+    <button type="button" class="reset-btn" id="reset-btn">Reset</button>
+  </div>
+
+</div>
+
+<script>
+  const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  // ── Plant animation ──────────────────────────────────────────────────────────
+  // Cycles through 4 frames (plant-animation-1.png … 4.png) at a slow idle pace.
+  // Falls back to emoji if images haven't been added to assets/ yet.
+
+  const frames = [0,1,2,3].map(i => document.getElementById(`frame-${i}`));
+  const fallback = document.getElementById('plant-fallback');
+  let currentFrame = 0;
+  let imagesLoaded = 0;
+  let animInterval = null;
+
+  frames.forEach(img => {
+    if (img.complete && img.naturalWidth > 0) imagesLoaded++;
+    else img.addEventListener('load', () => { imagesLoaded++; if (imagesLoaded >= 1) startAnimation(); });
+  });
+
+  if (imagesLoaded >= 1) startAnimation();
+
+  function startAnimation() {
+  fallback.classList.add('hidden');
+  frames[currentFrame].classList.add('active');
+  if (animInterval) return;
+  animInterval = setInterval(advanceFrame, 600);
+}
+
+function advanceFrame() {
+  const nextFrame = (currentFrame + 1) % frames.length;
+  frames[nextFrame].classList.add('active');
+  setTimeout(() => {
+    frames[currentFrame].classList.remove('active');
+    currentFrame = nextFrame;
+  }, 200);
+}
+
+  // Plays the watering animation: speeds up frames briefly + drops water drops
+  function playWaterAnimation() {
+    const wrap = document.getElementById('plant-wrap');
+    wrap.classList.remove('watered');
+    void wrap.offsetWidth; // reflow to restart animation
+    wrap.classList.add('watered');
+
+    // Speed up frame cycling
+    if (animInterval) clearInterval(animInterval);
+    animInterval = setInterval(advanceFrame, 150);
+    setTimeout(() => {
+      clearInterval(animInterval);
+      animInterval = setInterval(advanceFrame, 600);
+    }, 1800);
+
+    // Spawn water drop emojis
+    for (let i = 0; i < 4; i++) {
+      setTimeout(() => spawnDrop(wrap), i * 180);
+    }
+  }
+
+  function spawnDrop(parent) {
+    const drop = document.createElement('span');
+    drop.className = 'drop';
+    drop.textContent = '💧';
+    drop.style.left = (30 + Math.random() * 140) + 'px';
+    parent.appendChild(drop);
+    setTimeout(() => drop.remove(), 900);
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────────────────
+
+  function getNextWateringDate(dayOfWeek) {
+    const d = new Date(); d.setHours(0,0,0,0);
+    const diff = (dayOfWeek - d.getDay() + 7) % 7;
+    d.setDate(d.getDate() + (diff === 0 ? 7 : diff));
+    return d;
+  }
+
+  function getDaysUntil(date) {
+    const now = new Date(); now.setHours(0,0,0,0);
+    return Math.round((date - now) / 86400000);
+  }
+
+  function formatDate(iso) {
+    return new Intl.DateTimeFormat('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric'
+    }).format(new Date(iso));
+  }
+
+  function computeStreak(history, dayOfWeek) {
+    if (!history.length) return 0;
+    let streak = 0;
+    const sorted = [...history]
+      .map(d => { const x = new Date(d); x.setHours(0,0,0,0); return x; })
+      .sort((a, b) => b - a);
+    const ref = new Date(); ref.setHours(0,0,0,0);
+    for (let week = 0; week < 52; week++) {
+      const target = new Date(ref);
+      target.setDate(ref.getDate() - week * 7);
+      const hit = sorted.some(d => Math.abs(d - target) < 4 * 86400000);
+      if (hit) streak++; else break;
+    }
+    return streak;
+  }
+
+  // ── Render ───────────────────────────────────────────────────────────────────
+
+  function render(state) {
+    if (!state) {
+      document.getElementById('setup').classList.add('active');
+      document.getElementById('main').classList.remove('active');
+      return;
+    }
+
+    document.getElementById('setup').classList.remove('active');
+    document.getElementById('main').classList.add('active');
+
+    const { plantName, dayOfWeek, history = [] } = state;
+
+    document.getElementById('plant-title').textContent = plantName || 'My plant';
+    document.getElementById('schedule-label').textContent = `Waters every ${DAYS[dayOfWeek]}`;
+    document.getElementById('count-val').textContent = history.length;
+    document.getElementById('streak-val').textContent = computeStreak(history, dayOfWeek);
+
+    const nextDate  = getNextWateringDate(dayOfWeek);
+    const daysUntil = getDaysUntil(nextDate);
+    document.getElementById('next-date').textContent = formatDate(nextDate);
+
+    const today       = new Date(); today.setHours(0,0,0,0);
+    const lastWatered = history.length ? new Date(history[history.length - 1]) : null;
+    if (lastWatered) lastWatered.setHours(0,0,0,0);
+    const wateredToday = lastWatered && lastWatered.getTime() === today.getTime();
+    const isDueToday   = today.getDay() === parseInt(dayOfWeek);
+
+    const badge = document.getElementById('status-badge');
+    const btn   = document.getElementById('water-btn');
+
+    if (wateredToday) {
+      badge.textContent = 'Watered today!';
+      badge.className   = 'badge';
+      btn.disabled      = true;
+    } else if (isDueToday) {
+      badge.textContent = '💧 water today';
+      badge.className   = 'badge badge-due';
+      btn.disabled      = false;
+    } else if (daysUntil === 7) {
+      badge.textContent = 'overdue';
+      badge.className   = 'badge badge-overdue';
+      btn.disabled      = false;
+    } else {
+      badge.textContent = `Next up in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`;
+      badge.className   = 'badge';
+      btn.disabled      = true;
+    }
+  }
+
+  // ── Init & events ─────────────────────────────────────────────────────────
+
+  // Check if running inside Electron (has plantAPI) or plain browser (preview)
+  const isElectron = !!window.plantAPI;
+
+  async function getState()    { return isElectron ? window.plantAPI.getState()      : JSON.parse(localStorage.getItem('plantData') || 'null'); }
+  async function saveState(d)  { return isElectron ? window.plantAPI.saveState(d)    : (localStorage.setItem('plantData', JSON.stringify(d)), d); }
+  async function logWatering() {
+    if (isElectron) return window.plantAPI.logWatering();
+    const s = JSON.parse(localStorage.getItem('plantData') || 'null');
+    if (!s) return null;
+    s.history = [...(s.history||[]), new Date().toISOString()];
+    localStorage.setItem('plantData', JSON.stringify(s));
+    return s;
+  }
+  async function resetState()  { return isElectron ? window.plantAPI.resetState()    : localStorage.removeItem('plantData'); }
+
+  async function init() {
+    const state = await getState();
+    render(state);
+  }
+
+  document.getElementById('start-btn').addEventListener('click', async () => {
+    const name = document.getElementById('plant-name').value.trim() || 'My plant';
+    const day  = parseInt(document.getElementById('day-select').value);
+    const newState = { plantName: name, dayOfWeek: day, history: [] };
+    await saveState(newState);
+    render(newState);
+  });
+
+  document.getElementById('water-btn').addEventListener('click', async () => {
+    playWaterAnimation();
+    const state = await logWatering();
+    setTimeout(() => render(state), 400);
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', async () => {
+    if (confirm('Reset your plant tracker?')) {
+      await resetState();
+      render(null);
+    }
+  });
+
+  if (isElectron) {
+    window.plantAPI.onStateUpdated((state) => render(state));
+  }
+
+  init();
+</script>
+</body>
+</html>
