@@ -32,7 +32,7 @@ jobs:
           node-version: 20
       - run: npm install
       - run: npm run build:win
-      env:
+        env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WIN_CSC_LINK: ""
       - uses: actions/upload-artifact@v4
